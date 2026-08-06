@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Moncastle - Almacén de Minecraft</title>
+    <style>
+        /* Estilos CSS muy básicos para asegurar legibilidad */
+        body { font-family: sans-serif; color: #333; padding: 20px; }
+        h1 { color: #000; }
+        .dato { font-weight: bold; font-size: 1.2em; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>Estado del Almacén</h1>
+    <p>Ítem detectado: <span id="item-nombre" class="dato">Cargando...</span></p>
+    <!-- Hemos añadido estilos directamente aquí para forzar la visibilidad -->
+    <p>Cantidad: <span id="item-cantidad" class="dato" style="color: black !important; background-color: #eee; padding: 2px 5px; border: 1px solid #999;">Cargando...</span></p>
+
+    <script>
+        function actualizarDatos() {
+            fetch('http://moncastle.duckdns.org:25566/network/817611002')
+                .then(response => response.json())
+                .then(data => {
+                    const panel = data.elements.find(el => el.value && Array.isArray(el.value));
+                    
+                    if (panel && panel.value.length > 0) {
+                        const primerItem = panel.value[0];
+                        
+                        // Extraemos el nombre del recurso de forma segura
+                        const nombre = primerItem.resourceLocation || primerItem.item || "Desconocido";
+                        
+                        // Buscamos la cantidad de forma dinámica
+                        const cantidad = primerItem.count !== undefined ? primerItem.count : (primerItem.amount !== undefined ? primerItem.amount : "No disponible");
+                        
+                        document.getElementById('item-nombre').innerText = nombre;
+                        document.getElementById('item-cantidad').innerText = cantidad;
+                        
+                        // Actualizamos el título de la pestaña también para confirmar visualmente
+                        document.title = "Almacén: " + nombre + " | Cantidad: " + cantidad;
+                    } else {
+                        document.getElementById('item-nombre').innerText = "Ningún ítem en el panel";
+                        document.getElementById('item-cantidad').innerText = "0";
+                        document.title = "Almacén: Vacío";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error de conexión:', error);
+                    document.getElementById('item-nombre').innerText = "Error de conexión";
+                    document.getElementById('item-cantidad').innerText = "???";
+                });
+        }
+
+        // Actualizar cada 2 segundos
+        setInterval(actualizarDatos, 2000);
+        actualizarDatos();
+    </script>
+</body>
+</html>
